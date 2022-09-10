@@ -13,7 +13,7 @@ This does the following:
 # Installation
 
 ```sh
-npm install --save-dev git+ssh://git@github.com:datalink/next-static-export-cordova
+npm install --save-dev github:datalink/next-static-export-cordova
 ```
 
 Highly recommended: you should also install `next-static-export-fix-csp-quotes` to handle fixing
