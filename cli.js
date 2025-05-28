@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-var fs = require("fs");
-var path = require("path");
-var process = require("process");
+const fs = require("fs");
+const path = require("path");
+const process = require("process");
 
 /**
- * Reads a directory recorsively
+ * Reads a directory recursively
+ *
  * @param dirPath
  * @param arrayOfFiles
  * @returns {*[]}
@@ -27,7 +28,7 @@ const readDirRecursiveSync = function (dirPath, arrayOfFiles = null) {
 };
 
 // Search within the ./out directory
-var outDirPath = "./out";
+const outDirPath = "./out";
 
 if (!fs.existsSync(outDirPath)) {
     console.log("No ./out directory exists - run 'next export' first");
@@ -35,12 +36,15 @@ if (!fs.existsSync(outDirPath)) {
 }
 
 // Find "/_next/" and replace with "/next/" in the html files
-console.log("Scanning directory " + outDirPath + " for html files");
-var REGEX = /(\/_next\/)/gm;
-var REPLACE = "/next/";
+console.log("Scanning directory " + outDirPath + " for html files...");
+const REGEX = /(\/_next\/)/gm;
+const REPLACE = "/next/";
+
+let numFilesScanned = 0;
+let numFilesAffected = 0;
 readDirRecursiveSync(outDirPath)
     .forEach((file) => {
-        console.debug("Scanning " + file);
+        numFilesScanned++;
         let contents = fs.readFileSync(file)
             .toString();
         let i = 0;
@@ -51,10 +55,11 @@ readDirRecursiveSync(outDirPath)
             i++;
         }
         if (i > 0) {
-            console.log("Fixed " + file + "(" + i + " occurrances)");
             fs.writeFileSync(file, contents);
+            numFilesAffected++;
         }
     });
+console.log(`> Scanned ${numFilesScanned} files, changed ${numFilesAffected} files`);
 
 // Move the /_next directory to /next
 if (fs.existsSync(outDirPath + "/_next")) {
@@ -63,17 +68,20 @@ if (fs.existsSync(outDirPath + "/_next")) {
 }
 
 // Move source map files
-console.log("Checking for map files");
+console.log("Checking for map files...");
+numFilesScanned = 0;
+numFilesAffected = 0;
 readDirRecursiveSync(outDirPath)
     .filter((file) => file.substr(file.length - 3) === ".js")
     .forEach((file) => {
+        numFilesScanned++;
         let inputMapFile = file.replace("./out/next", "./.next") + ".map";
         let outputMapFile = file + ".map";
-        console.debug("Checking for map file " + inputMapFile);
         if (fs.existsSync(inputMapFile)) {
-            console.log("Copying map file " + inputMapFile + " to " + outputMapFile);
             fs.copyFileSync(inputMapFile, outputMapFile);
+            numFilesAffected++;
         }
     });
+console.log(`> Scanned ${numFilesScanned} files, changed ${numFilesAffected} files`);
 
 console.log("Done");
